@@ -90,7 +90,7 @@ function liczStat(inputFile, outputFile, avgCount) {
 
 function toCSV(file, data) {
     let out = data
-        .map(row => row.map(x => typeof(x) == 'string' ? x : x.toString().replace('.', ',')).join(';'))
+        .map(row => row.map(x => typeof(x) == 'string' ? x : x.toString()).join(';'))
         .join('\r\n');
     fs.writeFileSync(file, out, 'utf-8');
 }
