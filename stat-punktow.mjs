@@ -5,6 +5,10 @@ import * as process from 'node:process';
 
 let globalOutput = [['Plik', 'Liczba pikseli', 'Srednia']];
 
+let avgFraction = null;
+let avgCount = null;
+let minCount;
+
 async function prompt() {
     let l = '';
     process.stdin.setEncoding('utf8');
@@ -20,7 +24,7 @@ async function prompt() {
     return l;
 }
 
-function calcPoint(out, arr, width, height, startX, startY, black, avgCount)
+function calcPoint(out, arr, width, height, startX, startY, black)
 {
     let stack = [startX, startY];
     let values = [];
@@ -33,16 +37,22 @@ function calcPoint(out, arr, width, height, startX, startY, black, avgCount)
         arr[width * y + x] = 0;
         stack.push(x + 1, y, x - 1, y, x, y + 1, x, y - 1);
     }
-    if (values.length < avgCount) {
+    if (values.length < minCount) {
         return;
     }
     values.sort((a, b) => b - a);
-    let avg = values.slice(0, avgCount).reduce((p, x) => p + x, 0) / avgCount;
+    let count;
+    if (avgFraction !== null) {
+        count = Math.ceil(values.length * avgFraction);
+    } else {
+        count = Math.min(avgCount, values.length);
+    }
+    let avg = values.slice(0, count).reduce((p, x) => p + x, 0) / count;
     out.push([values.length, avg]);
 }
 
 
-function liczStat(inputFile, outputFile, avgCount) {
+function liczStat(inputFile, outputFile) {
 
     let out = [];
     let csv = fs.readFileSync(inputFile, 'utf8');
@@ -73,7 +83,7 @@ function liczStat(inputFile, outputFile, avgCount) {
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
             if (arr[width * y + x] > black) {
-                calcPoint(out, arr, width, height, x, y, black, avgCount);
+                calcPoint(out, arr, width, height, x, y, black);
             }
         }
     }
@@ -96,12 +106,19 @@ function toCSV(file, data) {
 }
 
 async function main() {
-    console.log('Pikseli do średniej:');
-    let avgCount = parseInt((await prompt()).trim());
+    console.log('Pikseli do średniej (% lub liczba):');
+    let pikseli = (await prompt()).trim();
+    if (pikseli.endsWith('%')) {
+        avgFraction = parseFloat(pikseli.substring(0, pikseli.length - 1).trim()) / 100;
+    } else {
+        avgCount = parseInt(pikseli);
+    }
+    console.log('Minimalna liczba pikseli na punkt:');
+    minCount = parseFloat((await prompt()).trim());
 
     for (let f of fs.readdirSync('in')) {
         if (!f.startsWith('.')) {
-            liczStat(`in/${f}`, `out/${f}`, avgCount);
+            liczStat(`in/${f}`, `out/${f}`);
             console.log(f);
         }
     }
