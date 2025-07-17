@@ -35,9 +35,20 @@ function podziel(inputFile, outputFile, pixelsCount, sumCount) {
     let black = tab.reduce((p, row) => Math.min(p, row.reduce((p2, cell) => Math.min(p2, cell), Infinity)), Infinity);
     let brightest = tab.reduce((p, row) => Math.max(p, row.reduce((p2, cell) => Math.max(p2, cell), -Infinity)), -Infinity);
 
+    let zeroColumns = 0;
+    for (let col = 0; col < tab[0].length; col++) {
+        zeroColumns++;
+        for (let row = 0; row < tab.length; row++) {
+            if (tab[row][col] > black) {
+                zeroColumns--;
+                break;
+            }
+        }
+    }
+
     let height = tab.length;
     let width = tab.reduce((width, row) => Math.max(width, row.length), 0);
-    let parts = new Array(Math.floor(width / pixelsCount)).fill(0).map(() => []);
+    let parts = new Array(Math.ceil(width / pixelsCount)).fill(0).map(() => []);
 
     console.log(`${inputFile}: ${width} kolumn (${width * height} pikseli) podzielono na ${parts.length} fragmentów po ${pixelsCount} kolumn (${pixelsCount * height} pikseli) na fragment. Poziom czarny: ${black}`);
 
@@ -70,7 +81,7 @@ function podziel(inputFile, outputFile, pixelsCount, sumCount) {
     }
 
     globalOutput.push([
-        `"${inputFile}"`, pixelsCount, sumCount, sum, count, parts.length, width, brightest
+        `"${inputFile}"`, pixelsCount, sumCount, sum, count, parts.length, width, brightest, zeroColumns
     ]);
 
 
@@ -104,7 +115,7 @@ async function main() {
 }
 
 let globalOutput = [
-    ['"Nazwa"', '"Dlugosc przedzialu"', '"Zadana liczba maksimow"', '"Suma maksimow"', '"Liczba maksimow"', '"Liczba przedzialow"', '"Dlugosc sladu"', '"Maksimum sladu"']
+    ['"Nazwa"', '"Dlugosc przedzialu"', '"Zadana liczba maksimow"', '"Suma maksimow"', '"Liczba maksimow"', '"Liczba przedzialow"', '"Dlugosc sladu"', '"Maksimum sladu"', '"Liczba kolumn zerowych"']
 ];
 
 main();
